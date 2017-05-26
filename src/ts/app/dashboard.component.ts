@@ -6,6 +6,7 @@ declare var Vue: any; // Magic
 interface hero {
     name: string;
     power: string;
+    done:boolean;
 }
 
 //[routerLink]="['/detail', hero.power]"
@@ -36,12 +37,14 @@ Parent listens for child event
 export class HeroChildComponent implements OnInit {
     @Input() hero: hero;
     _power: string;
+    _done:boolean;
     //@Input("power") power: string;
     @Input("power")
     set power(power: string) {
         this._power = power;
     }
     ngOnInit() {
+        this._done=true;
     }
 
     @Output() deleteItemChild = new EventEmitter();
@@ -50,15 +53,31 @@ export class HeroChildComponent implements OnInit {
         this.deleteItemChild.emit(hero);
     }
 
+
     get power(): string { return this._power; }
 }
 
+
+
+/*
+https://angular.io/docs/ts/latest/guide/lifecycle-hooks.html
+
+component Lifecycle sequence
+ngOnInit()
+Initialize the directive/component after Angular first displays the data-bound properties and sets the directive/component's input properties.
+Called once, after the first ngOnChanges().
+
+ngOnChanges()
+Respond when Angular (re)sets data-bound input properties. The method receives a SimpleChanges object of current and previous property values.
+Called before ngOnInit() and whenever one or more data-bound input properties change.
+
+*/
 
 @Component({
     selector: 'my-dashboard',
     template: `<h1>Hello {{name}}</h1>
   <div *ngFor="let hero of heroes">
-    <hero-child [hero]="hero" [power]="hero.power" (deleteItemChild)="deleteItem($event)"></hero-child>
+    <hero-child *ngIf="false" [hero]="hero" [power]="hero.power" (deleteItemChild)="deleteItem($event)"></hero-child>
     <a (click)="save(1)">{{hero.name}}</a>
   </div>
       <div id="app">
@@ -74,33 +93,44 @@ export class DashboardComponent implements OnInit {
 
     ngAfterContentInit() {
         console.log("ngAfterContentInit");
-        console.log(this.test);
-        console.log(document.getElementById("app"));
+        //console.log("ngAfterContentInit");
+        //console.log(this.test);
+        //console.log(document.getElementById("app"));
     }
 
+
+
+    ngOnChanges(){
+
+        console.log("ngOnChanges");
+    }
+
+
+
     ngOnInit(): void {
-        this.heroes = [{ name: "萬詞王", power: "磁力" }];
+        console.log("ngOnInit");
+        this.heroes = [{ name: "萬詞王", power: "磁力",done:false }];
         this.name = 'DashboardComponent!!!';
 
 
 
 
 
-        const promise = new Promise(function (resolveParam, rejectParam) {
-            setTimeout(function () { resolveParam(1) }, 1000)
+        // const promise = new Promise(function (resolveParam, rejectParam) {
+        //     setTimeout(function () { resolveParam(1) }, 1000)
 
-            //rejectParam(new Error('error!'))
-        })
+        //     //rejectParam(new Error('error!'))
+        // })
 
-        promise.then((value: number) => {
-            console.log(value) // 1
-            return this.http.get('api/heroes')
-                .toPromise()
-        }).then((value) => {
-            let x: any = value;
-            console.log(x.json().data as hero[]) // 2
-            return value
-        }).catch((err) => console.log(err.message))
+        // promise.then((value: number) => {
+        //     console.log(value) // 1
+        //     return this.http.get('api/heroes')
+        //         .toPromise()
+        // }).then((value) => {
+        //     let x: any = value;
+        //     console.log(x.json().data as hero[]) // 2
+        //     return value
+        // }).catch((err) => console.log(err.message))
 
     }
 
@@ -112,7 +142,7 @@ export class DashboardComponent implements OnInit {
     
     save(id: number, hero: hero) {
 
-        this.heroes.push({ name: "X教授", power: "念力" });
+        this.heroes.push({ name: "X教授", power: "念力",done:true });
 
         var url = 'api/heroes';
         url = url + `${id}`;
