@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Headers, Http } from '@angular/http';
 import 'rxjs/add/operator/toPromise';
 declare var Vue: any; // Magic
@@ -14,22 +14,40 @@ interface hero {
 Pass data from parent to child with input binding
 @Input decorations.
 he second @Input aliases the child component property name masterName as 'master'.
+
+Parent listens for child event
+使用@Output傳遞事件
+使用@Output讓元件間的事件進行傳遞
+@Output() onVoted = new EventEmitter<boolean>();  可限定傳遞種類
+
+1.child 加入 @output
+2.觸發 emit
+3.parent component 觸發被指定的 function
+
 */
 
 @Component({
     selector: 'hero-child',
     template: `
-    <h3>{{hero.name}} says:</h3>
+    <h3 (click)="delete(hero)">{{hero.name}} says:</h3>
     <p>I, {{hero.name}}, power:{{power}}.</p>
   `
 })
-export class HeroChildComponent {
+export class HeroChildComponent implements OnInit {
     @Input() hero: hero;
-    _power:string;
+    _power: string;
     //@Input("power") power: string;
     @Input("power")
     set power(power: string) {
         this._power = power;
+    }
+    ngOnInit() {
+    }
+
+    @Output() deleteItemChild = new EventEmitter();
+
+    delete(hero:hero){
+        this.deleteItemChild.emit(hero);
     }
 
     get power(): string { return this._power; }
@@ -40,7 +58,7 @@ export class HeroChildComponent {
     selector: 'my-dashboard',
     template: `<h1>Hello {{name}}</h1>
   <div *ngFor="let hero of heroes">
-    <hero-child [hero]="hero" [power]="hero.power"></hero-child>
+    <hero-child [hero]="hero" [power]="hero.power" (deleteItemChild)="deleteItem($event)"></hero-child>
     <a (click)="save(1)">{{hero.name}}</a>
   </div>
       <div id="app">
@@ -85,7 +103,17 @@ export class DashboardComponent implements OnInit {
         }).catch((err) => console.log(err.message))
 
     }
-    save(id: number) {
+
+    deleteItem(hero:hero){
+
+        console.log(hero);
+
+    }
+    
+    save(id: number, hero: hero) {
+
+        this.heroes.push({ name: "X教授", power: "念力" });
+
         var url = 'api/heroes';
         url = url + `${id}`;
         //console.log(this.http.get('api/heroes'));
